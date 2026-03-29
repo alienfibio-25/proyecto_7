@@ -4,20 +4,31 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy.stats as stats
 
-# Load the cleaned data
+# Carga el dataframe limpio en caché para mejorar el rendimiento
 @st.cache_data
 def load_data():
-    df = pd.read_csv('notebooks/vehicles_us_clean.csv')
-    return df
+    try:
+        df = pd.read_csv('notebooks/vehicles_us_clean.csv')
+        return df
+    except FileNotFoundError:
+        st.error("El archivo 'notebooks/vehicles_us_clean.csv' no se encuentra. Asegúrate de que el archivo de datos limpios esté disponible.")
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error al cargar los datos: {e}")
+        return pd.DataFrame()
 
 df = load_data()
 
+if df.empty:
+    st.stop()
+
+# Crea el título de la app
 st.title('Análisis de Vehículos Usados')
 
-# Sidebar for filters
+# crea un objeto para filtrar datos
 st.sidebar.header('Filtros')
 
-# Checkbox for manufacturers with more than 1000 ads
+# Checkbox para fabricantes con más de 1000 anuncios
 manufacturers_counts = df['make'].value_counts()
 manufacturers_over_1000 = manufacturers_counts[manufacturers_counts > 1000].index.tolist()
 show_only_large_manufacturers = st.sidebar.checkbox('Mostrar solo fabricantes con más de 1000 anuncios', value=False)
@@ -29,8 +40,11 @@ else:
 
 # Dataviewer
 st.header('Vista de Datos')
-columns_to_show = ['price', 'model_year', 'make', 'model', 'condition', 'cylinders', 'fuel', 'odometer', 'transmission', 'type', 'paint_color', 'is_4wd']
-st.dataframe(df_filtered[columns_to_show])
+if df_filtered.empty:
+    st.warning("No hay datos para mostrar con los filtros seleccionados.")
+else:
+    columns_to_show = ['price', 'model_year', 'make', 'model', 'condition', 'cylinders', 'fuel', 'odometer', 'transmission', 'type', 'paint_color', 'is_4wd']
+    st.dataframe(df_filtered[columns_to_show])
 
 # Gráfico de barras "Tipos de vehículo por fabricante"
 st.header('Tipos de Vehículo por Fabricante')
@@ -51,9 +65,15 @@ make2 = st.selectbox('Seleccionar segundo fabricante', makes, key='make2')
 normalized = st.checkbox('Mostrar gráfica normalizada', value=True)
 
 if make1 and make2:
-    df_comp = df_filtered[df_filtered['make'].isin([make1, make2])].dropna(subset=['price'])
-    if normalized:
-        fig_comp = px.histogram(df_comp, x='price', color='make', histnorm='percent', title=f'Distribución Normalizada de Precios: {make1} vs {make2}')
+    if make1 == make2:
+        st.warning("Por favor, selecciona dos fabricantes diferentes para comparar.")
     else:
-        fig_comp = px.histogram(df_comp, x='price', color='make', title=f'Distribución de Precios: {make1} vs {make2}')
-    st.plotly_chart(fig_comp)
+        df_comp = df_filtered[df_filtered['make'].isin([make1, make2])].dropna(subset=['price'])
+        if df_comp.empty:
+            st.warning("No hay datos de precios disponibles para los fabricantes seleccionados.")
+        else:
+            if normalized:
+                fig_comp = px.histogram(df_comp, x='price', color='make', histnorm='percent', title=f'Distribución Normalizada de Precios: {make1} vs {make2}')
+            else:
+                fig_comp = px.histogram(df_comp, x='price', color='make', title=f'Distribución de Precios: {make1} vs {make2}')
+            st.plotly_chart(fig_comp)
