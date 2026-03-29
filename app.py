@@ -60,8 +60,16 @@ st.plotly_chart(fig_hist)
 # Comparación de distribución de precios entre fabricantes
 st.header('Comparación de Distribución de Precios entre Fabricantes')
 makes = sorted(df_filtered['make'].unique())
+
+# Asegurar que las selecciones previas sean válidas con el filtro actual
+if 'make1' not in st.session_state or st.session_state['make1'] not in makes:
+    st.session_state['make1'] = makes[0] if makes else None
+if 'make2' not in st.session_state or st.session_state['make2'] not in makes:
+    st.session_state['make2'] = makes[1] if len(makes) > 1 else (makes[0] if makes else None)
+
 make1 = st.selectbox('Seleccionar primer fabricante', makes, key='make1')
 make2 = st.selectbox('Seleccionar segundo fabricante', makes, key='make2')
+
 normalized = st.checkbox('Mostrar gráfica normalizada', value=True)
 
 if make1 and make2:
