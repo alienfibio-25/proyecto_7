@@ -16,9 +16,16 @@ Una aplicación web interactiva construida con Streamlit para el análisis explo
 ## Instalación
 
 1. Clona o descarga este repositorio.
-2. Asegúrate de tener Python 3.7+ instalado.
-3. Instala las dependencias:
+2. Instala las dependencias. Tienes dos opciones:
 
+### Opción 1: Usando Conda (recomendado)
+```bash
+conda env create -f environment.yml
+conda activate vehiculos_env
+```
+
+### Opción 2: Usando pip
+Asegúrate de tener Python 3.7+ instalado, luego:
 ```bash
 pip install -r requirements.txt
 ```
@@ -54,6 +61,7 @@ La aplicación utiliza un dataset de anuncios de venta de vehículos usados. Los
 ```
 proyecto_7/
 ├── app.py                 # Aplicación principal de Streamlit
+├── environment.yml        # Especificaciones del entorno Conda
 ├── notebooks/
 │   └── EDA.ipynb         # Notebook de análisis exploratorio y limpieza de datos
 ├── src/
